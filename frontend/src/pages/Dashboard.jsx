@@ -14,13 +14,21 @@ function Dashboard() {
       const response = await api.get('/task');
       setTasks(response.data.tasks);
     } catch (error) {
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        navigate('/login');
+        return;
+      }
       console.error('Error fetching tasks:', error);
     }
   };
 
   useEffect(() => {
+    if (!localStorage.getItem('token')) {
+      navigate('/login');
+      return;
+    }
     fetchTasks();
-  }, []);
+  }, [navigate]);
 
   function appearTask() {
     setShowForm((prev) => !prev);
@@ -32,7 +40,25 @@ function Dashboard() {
       alert(res.data.message);
       fetchTasks();
     } catch (error) {
-      console.log(error);
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        navigate('/login');
+        return;
+      }
+      console.error('Error deleting task:', error);
+    }
+  };
+
+  const toggleComplete = async (id) => {
+    try {
+      const res = await api.patch(`/task/${id}/complete`);
+      alert(res.data.message);
+      fetchTasks();
+    } catch (error) {
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        navigate('/login');
+        return;
+      }
+      console.error('Error toggling completion:', error);
     }
   };
 
@@ -41,7 +67,11 @@ function Dashboard() {
       let res = await api.get(`/task/${task_id}`);
       setSingleTask(res.data.task[0]);
     } catch (error) {
-      console.log(error);
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        navigate('/login');
+        return;
+      }
+      console.error('Error fetching task details:', error);
     }
   };
 
@@ -96,10 +126,19 @@ function Dashboard() {
               >
                 <div className="text-gray-800">
                   <div className="flex justify-between items-center">
-                    <h3 className="text-lg font-semibold">
+                    <h3 className={`text-lg font-semibold ${data.completed ? 'line-through text-gray-500' : ''}`}>
                       {data.title}
+                    </h3>
+                    <div className="flex items-center gap-2">
                       <button
-                        className="ml-4"
+                        className="text-sm px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600"
+                        onClick={() => toggleComplete(data.task_id)}
+                        title="Toggle complete"
+                      >
+                        {data.completed ? 'Mark Incomplete' : 'Mark Complete'}
+                      </button>
+                      <button
+                        className="ml-2"
                         onClick={() => {
                           fetchData(data.task_id);
                           appearTask();
@@ -108,13 +147,13 @@ function Dashboard() {
                       >
                         ✏️
                       </button>
-                    </h3>
-                    <button
-                      onClick={() => deleteTask(data.task_id)}
-                      title="Delete"
-                    >
-                      🗑️
-                    </button>
+                      <button
+                        onClick={() => deleteTask(data.task_id)}
+                        title="Delete"
+                      >
+                        🗑️
+                      </button>
+                    </div>
                   </div>
                   <p className="mt-1 text-sm text-gray-600"><strong>Description:</strong> {data.description}</p>
                   <p className="mt-1 text-sm text-gray-600"><strong>Due Date:</strong> {data.due_date?.slice(0, 10)}</p>

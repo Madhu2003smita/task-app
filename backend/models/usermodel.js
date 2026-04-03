@@ -13,12 +13,13 @@ export const findByMail = async(mail)=>{
    
 };
 
-export const appendUser =(username,hashPassword,email)=>{
+export const appendUser = async (username,hashPassword,email) => {
     try{
-        pack.query(
-            'insert into users (username,email,password) values($1,$2,$3)',
+        const result = await pack.query(
+            'insert into users (username,email,password) values($1,$2,$3) RETURNING *',
             [username,email,hashPassword]
-        )
+        );
+        return result.rows[0];
     }
     catch(error){
         throw error

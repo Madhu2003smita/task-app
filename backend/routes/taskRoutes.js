@@ -7,6 +7,7 @@ router.post('/task',verifyToken,addTask)
 router.get('/task',verifyToken,getAllTask)
 router.get('/task/:id',verifyToken, getSingleData)
 router.put('/task/:id',verifyToken,updateTask)
+router.patch('/task/:id/complete', verifyToken, toggleTaskCompletion)
 router.delete('/task/:id',verifyToken,removeTasks)
 
 export default router
